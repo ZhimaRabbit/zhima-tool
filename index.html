@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>计算机网络基础学习笔记 - 86133</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1, h2 { color: #2c3e50; border-bottom: 2px solid #e9ecef; padding-bottom: 10px; }
+        .code-container { background-color: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 6px; position: relative; font-family: 'Consolas', monospace; font-size: 14px; overflow-x: auto; }
+        .copy-btn { position: absolute; top: 10px; right: 10px; padding: 5px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .copy-btn:hover { background-color: #0056b3; }
+        .tool-box { background-color: #fff; border: 1px solid #ddd; padding: 15px; border-radius: 6px; margin-top: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        input[type="text"] { width: 100%; padding: 8px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { padding: 8px 15px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #218838; }
+        #result { margin-top: 10px; color: #d9534f; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1>计算机网络基础学习笔记</h1>
+    <p>本页面用于记录局域网扫描与 TCP 端口探测的 Python 基础代码。</p>
+
+    <h2>1. Python 局域网主机发现代码</h2>
+    <div class="code-container">
+        <button class="copy-btn" onclick="copyCode()">一键复制</button>
+        <pre id="python-code">import socket
+import threading
+
+TARGET_NETWORK = "192.168.1." 
+PORTS = [80, 135, 445, 3389]
+
+def scan_ip(ip):
+    for port in PORTS:
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(0.3)
+            result = s.connect_ex((ip, port))
+            if result == 0:
+                print(f"[+] 发现存活主机: {ip} (端口 {port} 开放)")
+                break
+            s.close()
+        except Exception:
+            pass
+
+def main():
+    print(f"[*] 开始扫描网段: {TARGET_NETWORK}0/24 ...")
+    threads = []
+    for i in range(1, 255):
+        ip = TARGET_NETWORK + str(i)
+        t = threading.Thread(target=scan_ip, args=(ip,))
+        threads.append(t)
+        t.start()
+    for t in threads:
+        t.join()
+    print("[*] 扫描完成！")
+
+if __name__ == "__main__":
+    main()</pre>
+    </div>
+
+    <h2>2. 在线数据编码工具 (纯前端运行)</h2>
+    <div class="tool-box">
+        <p><strong>Base64 编码/解码器：</strong></p>
+        <input type="text" id="b64-input" placeholder="输入要处理的文本...">
+        <button onclick="encodeBase64()">编码 (Encode)</button>
+        <button onclick="decodeBase64()">解码 (Decode)</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // 1. 复制代码功能
+        function copyCode() {
+            const code = document.getElementById('python-code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                alert('代码已成功复制到剪贴板！可以打开 Python 粘贴了。');
+            }).catch(err => {
+                alert('复制失败，请手动选中复制。');
+            });
+        }
+
+        // 2. Base64 工具功能
+        function encodeBase64() {
+            const input = document.getElementById('b64-input').value;
+            if(!input) return;
+            try {
+                const encoded = btoa(unescape(encodeURIComponent(input)));
+                document.getElementById('result').innerText = "编码结果: " + encoded;
+            } catch(e) { document.getElementById('result').innerText = "编码错误"; }
+        }
+
+        function decodeBase64() {
+            const input = document.getElementById('b64-input').value;
+            if(!input) return;
+            try {
+                const decoded = decodeURIComponent(escape(atob(input)));
+                document.getElementById('result').innerText = "解码结果: " + decoded;
+            } catch(e) { document.getElementById('result').innerText = "解码错误 (不是合法的 Base64)"; }
+        }
+    </script>
+</body>
+</html>
